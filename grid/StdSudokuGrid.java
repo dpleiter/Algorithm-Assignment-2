@@ -16,14 +16,12 @@ import java.util.*;
  */
 public class StdSudokuGrid extends SudokuGrid {
     // TODO: Add your own attributes
-    BufferedReader file;
-    int[][] grid;
-    Set<Integer> digits = new HashSet<Integer>();
+    private int[][] grid;
+    private Set<Integer> digits = new HashSet<Integer>();
+    private int gridDimensions;
 
     public StdSudokuGrid() {
         super();
-
-        // TODO: any necessary initialisation at the constructor
     } // end of StdSudokuGrid()
 
     /* ********************************************************* */
@@ -39,15 +37,13 @@ public class StdSudokuGrid extends SudokuGrid {
 
         // dimesnion of grid
         inputLine = file.readLine();
-        int gridDimensions = Integer.parseInt(inputLine);
+        gridDimensions = Integer.parseInt(inputLine);
 
         grid = new int[gridDimensions][gridDimensions];
-        System.out.println("Initialised grid with dimensions " + gridDimensions + "x" + gridDimensions);
 
         inputLine = file.readLine();
 
         for (String digit : inputLine.split(" ")) {
-            System.out.println("Adding digit " + digit + " to set");
             digits.add(Integer.parseInt(digit));
         }
 
@@ -59,34 +55,122 @@ public class StdSudokuGrid extends SudokuGrid {
             cellCoords = cellDetail[0].split(",");
             cellValue = cellDetail[1];
 
-            System.out.println("Cell at coordinate (" + cellCoords[0] + "," + cellCoords[1] + ") = " + cellValue);
             grid[Integer.parseInt(cellCoords[0])][Integer.parseInt(cellCoords[1])] = Integer.parseInt(cellValue);
 
             inputLine = file.readLine();
         }
 
         file.close();
+
+        validate();
     } // end of initBoard()
 
     @Override
     public void outputGrid(String filename) throws FileNotFoundException, IOException {
-        // TODO
+        BufferedWriter outfile = new BufferedWriter(new FileWriter(filename));
+
+        outfile.write(toString());
+
+        outfile.close();
     } // end of outputBoard()
 
     @Override
     public String toString() {
-        // TODO
+        String outString = "";
+        int cellValue;
 
-        // placeholder
-        return String.valueOf("");
+        for (int row = 0; row < gridDimensions; row++) {
+            for (int col = 0; col < gridDimensions; col++) {
+                cellValue = grid[row][col];
+
+                if (cellValue == 0) {
+                    outString += " ";
+                } else {
+                    outString += Integer.toString(cellValue);
+                }
+
+                if (col == gridDimensions - 1) {
+                    outString += "\n";
+                } else {
+                    outString += ",";
+                }
+            }
+        }
+
+        return outString;
     } // end of toString()
 
     @Override
     public boolean validate() {
-        // TODO
+        int boxSize = (int) Math.sqrt(gridDimensions);
+        int cellValue;
 
-        // placeholder
-        return false;
+        HashSet<Integer> checker = new HashSet<Integer>();
+
+        // Check rows
+        for (int row = 0; row < gridDimensions; row++) {
+            for (int col = 0; col < gridDimensions; col++) {
+                cellValue = grid[row][col];
+
+                if (cellValue == 0)
+                    continue;
+
+                if (!checker.contains(cellValue)) {
+                    checker.add(cellValue);
+                } else {
+                    System.err.println("Error in row");
+                    return false;
+                }
+            }
+
+            checker.clear();
+        }
+
+        // Check columns
+        for (int col = 0; col < gridDimensions; col++) {
+            for (int row = 0; row < gridDimensions; row++) {
+                cellValue = grid[row][col];
+
+                if (cellValue == 0)
+                    continue;
+
+                if (!checker.contains(cellValue)) {
+                    checker.add(cellValue);
+                } else {
+                    System.err.println("Error in column");
+                    return false;
+                }
+            }
+
+            checker.clear();
+        }
+
+        // Check boxes
+        for (int boxStartRow = 0; boxStartRow < gridDimensions; boxStartRow += 2) {
+            for (int boxStartCol = 0; boxStartCol < gridDimensions; boxStartCol += 2) {
+                for (int c = 0; c < boxSize; c++) {
+                    for (int d = 0; d < boxSize; d++) {
+                        cellValue = grid[boxStartRow + c][boxStartCol + d];
+
+                        if (cellValue == 0)
+                            continue;
+
+                        if (!checker.contains(cellValue)) {
+                            checker.add(cellValue);
+                        } else {
+                            System.err.println("Error in box");
+                            return false;
+                        }
+                    }
+                }
+
+                checker.clear();
+            }
+        }
+
+        System.out.println("VALID GRID");
+
+        return true;
     } // end of validate()
 
 } // end of class StdSudokuGrid
