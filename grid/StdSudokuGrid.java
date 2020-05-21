@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class StdSudokuGrid extends SudokuGrid {
     // TODO: Add your own attributes
-    private int[][] grid;
+    public int[][] grid;
     private Set<Integer> digits = new HashSet<Integer>();
     private int gridDimensions;
 
@@ -100,8 +100,8 @@ public class StdSudokuGrid extends SudokuGrid {
         return outString;
     } // end of toString()
 
-    @Override
     public boolean validate() {
+        // to run after initialisation to ensure a valid starting grid
         int boxSize = (int) Math.sqrt(gridDimensions);
         int cellValue;
 
@@ -118,7 +118,6 @@ public class StdSudokuGrid extends SudokuGrid {
                 if (!checker.contains(cellValue)) {
                     checker.add(cellValue);
                 } else {
-                    System.err.println("Error in row");
                     return false;
                 }
             }
@@ -137,7 +136,6 @@ public class StdSudokuGrid extends SudokuGrid {
                 if (!checker.contains(cellValue)) {
                     checker.add(cellValue);
                 } else {
-                    System.err.println("Error in column");
                     return false;
                 }
             }
@@ -146,8 +144,8 @@ public class StdSudokuGrid extends SudokuGrid {
         }
 
         // Check boxes
-        for (int boxStartRow = 0; boxStartRow < gridDimensions; boxStartRow += 2) {
-            for (int boxStartCol = 0; boxStartCol < gridDimensions; boxStartCol += 2) {
+        for (int boxStartRow = 0; boxStartRow < gridDimensions; boxStartRow += boxSize) {
+            for (int boxStartCol = 0; boxStartCol < gridDimensions; boxStartCol += boxSize) {
                 for (int c = 0; c < boxSize; c++) {
                     for (int d = 0; d < boxSize; d++) {
                         cellValue = grid[boxStartRow + c][boxStartCol + d];
@@ -158,7 +156,6 @@ public class StdSudokuGrid extends SudokuGrid {
                         if (!checker.contains(cellValue)) {
                             checker.add(cellValue);
                         } else {
-                            System.err.println("Error in box");
                             return false;
                         }
                     }
@@ -168,9 +165,42 @@ public class StdSudokuGrid extends SudokuGrid {
             }
         }
 
-        System.out.println("VALID GRID");
-
         return true;
     } // end of validate()
 
+    public boolean checkComplete() {
+        for (int[] row : grid) {
+            for (int cell : row) {
+                if (cell == 0)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public int[][] getGrid() {
+        return grid;
+    }
+
+    @Override
+    public Set<Integer> getDigits() {
+        return this.digits;
+    }
+
+    @Override
+    public int getSize() {
+        return this.gridDimensions;
+    }
+
+    @Override
+    public int getCellValue(int row, int col) {
+        return grid[row][col];
+    }
+
+    @Override
+    public void setCell(int row, int col, int value) {
+        grid[row][col] = value;
+    }
 } // end of class StdSudokuGrid
