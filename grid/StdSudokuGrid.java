@@ -17,7 +17,7 @@ import java.util.*;
 public class StdSudokuGrid extends SudokuGrid {
     // TODO: Add your own attributes
     public int[][] grid;
-    private ArrayList<Integer> digits;
+    private ArrayList<Integer> digits = new ArrayList<Integer>();
     private int gridDimensions;
 
     public StdSudokuGrid() {
