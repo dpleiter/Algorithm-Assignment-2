@@ -5,7 +5,7 @@
 package grid;
 
 import java.io.*;
-import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * Abstract class representing the general interface for a Sudoku grid. Both
@@ -60,7 +60,7 @@ public abstract class SudokuGrid {
 
     public abstract int[][] getGrid();
 
-    public abstract Set<Integer> getDigits();
+    public abstract ArrayList<Integer> getDigits();
 
     public abstract int getSize();
 

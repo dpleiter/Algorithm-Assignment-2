@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class KillerSudokuGrid extends SudokuGrid {
     public int[][] grid;
-    private Set<Integer> digits = new HashSet<Integer>();
+    private ArrayList<Integer> digits = new ArrayList<Integer>();
     int gridDimensions;
 
     public KillerSudokuGrid() {
@@ -65,7 +65,7 @@ public class KillerSudokuGrid extends SudokuGrid {
     }
 
     @Override
-    public Set<Integer> getDigits() {
+    public ArrayList<Integer> getDigits() {
         return this.digits;
     }
 

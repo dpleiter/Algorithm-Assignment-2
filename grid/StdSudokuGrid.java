@@ -17,7 +17,7 @@ import java.util.*;
 public class StdSudokuGrid extends SudokuGrid {
     // TODO: Add your own attributes
     public int[][] grid;
-    private Set<Integer> digits = new HashSet<Integer>();
+    private ArrayList<Integer> digits;
     private int gridDimensions;
 
     public StdSudokuGrid() {
@@ -61,6 +61,8 @@ public class StdSudokuGrid extends SudokuGrid {
         }
 
         file.close();
+
+        // digitArray = digits.toArray();
 
         validate();
     } // end of initBoard()
@@ -185,7 +187,7 @@ public class StdSudokuGrid extends SudokuGrid {
     }
 
     @Override
-    public Set<Integer> getDigits() {
+    public ArrayList<Integer> getDigits() {
         return this.digits;
     }
 
