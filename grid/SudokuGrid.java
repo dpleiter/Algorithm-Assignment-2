@@ -68,4 +68,6 @@ public abstract class SudokuGrid {
 
     public abstract void setCell(int row, int col, int value);
 
+    public abstract int getDigitPosition(int position);
+
 } // end of abstract class SudokuGrid

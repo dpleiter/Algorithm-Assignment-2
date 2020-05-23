@@ -205,4 +205,15 @@ public class StdSudokuGrid extends SudokuGrid {
     public void setCell(int row, int col, int value) {
         grid[row][col] = value;
     }
+
+    @Override
+    public int getDigitPosition(int digit) {
+        for (int position = 0; position < gridDimensions; position++) {
+            if (digits.get(position) == digit) {
+                return position;
+            }
+        }
+
+        return -1;
+    }
 } // end of class StdSudokuGrid

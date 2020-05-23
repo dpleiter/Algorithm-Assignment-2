@@ -85,4 +85,15 @@ public class KillerSudokuGrid extends SudokuGrid {
 
     }
 
+    @Override
+    public int getDigitPosition(int digit) {
+        for (int position = 0; position < gridDimensions; position++) {
+            if (digits.get(position) == digit) {
+                return position;
+            }
+        }
+
+        return -1;
+    }
+
 } // end of class KillerSudokuGrid
