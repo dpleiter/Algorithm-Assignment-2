@@ -31,7 +31,6 @@ public class BackTrackingSolver extends StdSudokuSolver {
                     grid.setCell(row, col, digit);
 
                     if (grid.validate()) {
-                        System.out.println("Testing " + digit + " in (" + row + ", " + col + ")");
                         if (grid.checkComplete()) {
                             return true;
                         } else if (solve(grid)) {

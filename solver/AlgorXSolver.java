@@ -23,8 +23,6 @@ public class AlgorXSolver extends StdSudokuSolver {
 
         xMatrix.init(grid);
 
-        xMatrix.printToFile();
-
         return performCalcs(grid, xMatrix);
     } // end of solve()
 
@@ -34,7 +32,7 @@ public class AlgorXSolver extends StdSudokuSolver {
         for (int i = 0; i < matrix.numCols; i++) {
             if (matrix.colInclusion[i]) {
                 if (matrix.colSums[i] == 0) {
-                    // then not possible to fulfill this constraint
+                    // Not possible to fulfill this constraint
                     return false;
                 }
 
@@ -45,6 +43,7 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         if (minCol == -1) {
+            // All constraints have been satisfied
             return true;
         }
 
@@ -56,8 +55,6 @@ public class AlgorXSolver extends StdSudokuSolver {
                 int addInRowNum = Math.floorDiv(mRow, gridSize * gridSize);
                 int addInColNum = Math.floorDiv(mRow % (gridSize * gridSize), gridSize);
 
-                System.out.println("Trying digit " + digit + " in cell (" + addInRowNum + ", " + addInColNum + ")");
-
                 if (!matrix.removeConstraintsByRow(mRow, grid.getSize())) {
                     count++;
                     continue;
@@ -68,7 +65,6 @@ public class AlgorXSolver extends StdSudokuSolver {
                 if (performCalcs(grid, matrix)) {
                     return true;
                 } else {
-                    System.out.println("Resetting cell (" + addInRowNum + ", " + addInColNum + ")");
                     grid.setCell(addInRowNum, addInColNum, 0);
                     matrix.resetConstraintsByRow(mRow, grid.getSize());
                 }
@@ -79,7 +75,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             }
         }
 
-        System.out.println("FAILED :(");
         return false;
     }
 
@@ -140,22 +135,21 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         public boolean removeConstraintsByRow(int rowNum, int gridSize) {
-            int mStartRow = rowNum - (rowNum % gridSize);
-
             int cellCol = cellConstraintByRow(rowNum, gridSize);
             int rowCol = rowConstraintByRow(rowNum, gridSize);
             int colCol = colConstraintByRow(rowNum, gridSize);
             int boxCol = boxConstraintByRow(rowNum, gridSize);
 
             if (colInclusion[cellCol] && colInclusion[rowCol] && colInclusion[colCol] && colInclusion[boxCol]) {
-                colInclusion[cellConstraintByRow(rowNum, gridSize)] = false;
-                colInclusion[rowConstraintByRow(rowNum, gridSize)] = false;
-                colInclusion[colConstraintByRow(rowNum, gridSize)] = false;
-                colInclusion[boxConstraintByRow(rowNum, gridSize)] = false;
+                colInclusion[cellCol] = false;
+                colInclusion[rowCol] = false;
+                colInclusion[colCol] = false;
+                colInclusion[boxCol] = false;
             } else {
-                System.out.println("FAILED :O");
                 return false;
             }
+
+            int mStartRow = rowNum - (rowNum % gridSize);
 
             for (int i = 0; i < gridSize; i++) {
                 rowInclusion[mStartRow + i] = false;
@@ -172,7 +166,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             }
 
             return true;
-
         }
 
         public void resetConstraintsByRow(int rowNum, int gridSize) {
@@ -220,6 +213,7 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         // For testing
+        @SuppressWarnings("unused")
         public void printToFile() {
             try {
                 BufferedWriter file = new BufferedWriter(new FileWriter("out/matrix_out.csv"));
