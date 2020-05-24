@@ -10,33 +10,89 @@ import java.io.*;
  * Algorithm X solver for standard Sudoku.
  */
 public class AlgorXSolver extends StdSudokuSolver {
+    private int gridSize = -1;
+
     public AlgorXSolver() {
 
     } // end of AlgorXSolver()
 
     @Override
     public boolean solve(SudokuGrid grid) {
-        algXMatrix xMatrix = new algXMatrix(grid.getSize());
-
-        // xMatrix.printToFile();
+        gridSize = grid.getSize();
+        algXMatrix xMatrix = new algXMatrix(gridSize);
 
         xMatrix.init(grid);
 
         xMatrix.printToFile();
 
-        // placeholder
-        return false;
+        return performCalcs(grid, xMatrix);
     } // end of solve()
 
+    private boolean performCalcs(SudokuGrid grid, algXMatrix matrix) {
+        int minCol = -1;
+
+        for (int i = 0; i < matrix.numCols; i++) {
+            if (matrix.colInclusion[i]) {
+                if (matrix.colSums[i] == 0) {
+                    // then not possible to fulfill this constraint
+                    return false;
+                }
+
+                if (minCol == -1 || (matrix.colSums[i] < matrix.colSums[minCol])) {
+                    minCol = i;
+                }
+            }
+        }
+
+        if (minCol == -1) {
+            return true;
+        }
+
+        int count = 0;
+
+        for (int mRow = 0; mRow < matrix.numRows; mRow++) {
+            if (matrix.rowInclusion[mRow] && matrix.matrix[mRow][minCol]) {
+                int digit = grid.getDigits().get(mRow % grid.getSize());
+                int addInRowNum = Math.floorDiv(mRow, gridSize * gridSize);
+                int addInColNum = Math.floorDiv(mRow % (gridSize * gridSize), gridSize);
+
+                System.out.println("Trying digit " + digit + " in cell (" + addInRowNum + ", " + addInColNum + ")");
+
+                if (!matrix.removeConstraintsByRow(mRow, grid.getSize())) {
+                    count++;
+                    continue;
+                }
+
+                grid.setCell(addInRowNum, addInColNum, digit);
+
+                if (performCalcs(grid, matrix)) {
+                    return true;
+                } else {
+                    System.out.println("Resetting cell (" + addInRowNum + ", " + addInColNum + ")");
+                    grid.setCell(addInRowNum, addInColNum, 0);
+                    matrix.resetConstraintsByRow(mRow, grid.getSize());
+                }
+
+                if (++count == matrix.colSums[minCol]) {
+                    break;
+                }
+            }
+        }
+
+        System.out.println("FAILED :(");
+        return false;
+    }
+
     private class algXMatrix {
-        private boolean[][] matrix;
-        private boolean[] colInclusion;
-        private int[] colSums;
+        public boolean[][] matrix;
 
-        private boolean[] rowInclusion;
+        public boolean[] colInclusion;
+        public int[] colSums;
 
-        int numRows;
-        int numCols;
+        public boolean[] rowInclusion;
+
+        public int numRows;
+        public int numCols;
 
         public algXMatrix(int dimensions) {
             numRows = dimensions * dimensions * dimensions;
@@ -73,37 +129,73 @@ public class AlgorXSolver extends StdSudokuSolver {
         public void init(SudokuGrid grid) {
             int gridSize = grid.getSize();
 
-            int cellConstraintCol;
-            int rowConstraintCol;
-            int colConstraintCol;
-            int boxConstraintCol;
-
             for (int row = 0; row < gridSize; row++) {
                 for (int col = 0; col < gridSize; col++) {
                     if (grid.getCellValue(row, col) != 0) {
-                        int mStartRow = (gridSize * gridSize * row) + (gridSize * col);
-                        for (int i = 0; i < gridSize; i++) {
-                            rowInclusion[mStartRow + i] = false;
-
-                            cellConstraintCol = cellConstraintByRow(mStartRow + i, gridSize);
-                            rowConstraintCol = rowConstraintByRow(mStartRow + i, gridSize);
-                            colConstraintCol = colConstraintByRow(mStartRow + i, gridSize);
-                            boxConstraintCol = boxConstraintByRow(mStartRow + i, gridSize);
-
-                            colSums[cellConstraintCol] = colSums[cellConstraintCol] - 1;
-                            colSums[rowConstraintCol] = colSums[rowConstraintCol] - 1;
-                            colSums[colConstraintCol] = colSums[colConstraintCol] - 1;
-                            colSums[boxConstraintCol] = colSums[boxConstraintCol] - 1;
-                        }
-
-                        colInclusion[cellConstraintByRow(mStartRow + grid.getCellValue(row, col) - 1,
-                                gridSize)] = false;
-                        colInclusion[rowConstraintByRow(mStartRow + grid.getCellValue(row, col) - 1, gridSize)] = false;
-                        colInclusion[colConstraintByRow(mStartRow + grid.getCellValue(row, col) - 1, gridSize)] = false;
-                        colInclusion[boxConstraintByRow(mStartRow + grid.getCellValue(row, col) - 1, gridSize)] = false;
+                        removeConstraintsByRow(gridSize * gridSize * row + gridSize * col
+                                + grid.getDigitPosition(grid.getCellValue(row, col)), gridSize);
                     }
                 }
             }
+        }
+
+        public boolean removeConstraintsByRow(int rowNum, int gridSize) {
+            int mStartRow = rowNum - (rowNum % gridSize);
+
+            int cellCol = cellConstraintByRow(rowNum, gridSize);
+            int rowCol = rowConstraintByRow(rowNum, gridSize);
+            int colCol = colConstraintByRow(rowNum, gridSize);
+            int boxCol = boxConstraintByRow(rowNum, gridSize);
+
+            if (colInclusion[cellCol] && colInclusion[rowCol] && colInclusion[colCol] && colInclusion[boxCol]) {
+                colInclusion[cellConstraintByRow(rowNum, gridSize)] = false;
+                colInclusion[rowConstraintByRow(rowNum, gridSize)] = false;
+                colInclusion[colConstraintByRow(rowNum, gridSize)] = false;
+                colInclusion[boxConstraintByRow(rowNum, gridSize)] = false;
+            } else {
+                System.out.println("FAILED :O");
+                return false;
+            }
+
+            for (int i = 0; i < gridSize; i++) {
+                rowInclusion[mStartRow + i] = false;
+
+                int cellConstraintCol = cellConstraintByRow(mStartRow + i, gridSize);
+                int rowConstraintCol = rowConstraintByRow(mStartRow + i, gridSize);
+                int colConstraintCol = colConstraintByRow(mStartRow + i, gridSize);
+                int boxConstraintCol = boxConstraintByRow(mStartRow + i, gridSize);
+
+                colSums[cellConstraintCol] = colSums[cellConstraintCol] - 1;
+                colSums[rowConstraintCol] = colSums[rowConstraintCol] - 1;
+                colSums[colConstraintCol] = colSums[colConstraintCol] - 1;
+                colSums[boxConstraintCol] = colSums[boxConstraintCol] - 1;
+            }
+
+            return true;
+
+        }
+
+        public void resetConstraintsByRow(int rowNum, int gridSize) {
+            int mStartRow = rowNum - (rowNum % gridSize);
+
+            for (int i = 0; i < gridSize; i++) {
+                rowInclusion[mStartRow + i] = true;
+
+                int cellConstraintCol = cellConstraintByRow(mStartRow + i, gridSize);
+                int rowConstraintCol = rowConstraintByRow(mStartRow + i, gridSize);
+                int colConstraintCol = colConstraintByRow(mStartRow + i, gridSize);
+                int boxConstraintCol = boxConstraintByRow(mStartRow + i, gridSize);
+
+                colSums[cellConstraintCol] = colSums[cellConstraintCol] + 1;
+                colSums[rowConstraintCol] = colSums[rowConstraintCol] + 1;
+                colSums[colConstraintCol] = colSums[colConstraintCol] + 1;
+                colSums[boxConstraintCol] = colSums[boxConstraintCol] + 1;
+            }
+
+            colInclusion[cellConstraintByRow(rowNum, gridSize)] = true;
+            colInclusion[rowConstraintByRow(rowNum, gridSize)] = true;
+            colInclusion[colConstraintByRow(rowNum, gridSize)] = true;
+            colInclusion[boxConstraintByRow(rowNum, gridSize)] = true;
         }
 
         private int cellConstraintByRow(int rowNum, int dimensions) {
