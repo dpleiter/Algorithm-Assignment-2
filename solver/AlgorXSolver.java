@@ -4,7 +4,6 @@
 package solver;
 
 import grid.SudokuGrid;
-import java.io.*;
 
 /**
  * Algorithm X solver for standard Sudoku.
@@ -21,8 +20,6 @@ public class AlgorXSolver extends StdSudokuSolver {
         gridSize = grid.getSize();
         algXMatrix xMatrix = new algXMatrix(gridSize);
 
-        xMatrix.printToFile();
-
         xMatrix.init(grid);
 
         return performCalcs(grid, xMatrix);
@@ -35,7 +32,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             if (matrix.colInclusion[i]) {
                 if (matrix.colSums[i] == 0) {
                     // Not possible to fulfill this constraint
-                    System.out.println("Failed2");
                     return false;
                 }
 
@@ -258,31 +254,6 @@ public class AlgorXSolver extends StdSudokuSolver {
                     + rowNum % dimensions;
 
             return 3 * dimensions * dimensions + (int) offset;
-        }
-
-        // For testing
-        @SuppressWarnings("unused")
-        public void printToFile() {
-            try {
-                BufferedWriter file = new BufferedWriter(new FileWriter("out/matrix_out.csv"));
-
-                for (int row = 0; row < numRows; row++) {
-                    file.write(Integer.toString(cellConstraintByRow(row, gridSize)));
-                    file.write(",");
-
-                    file.write(Integer.toString(rowConstraintByRow(row, gridSize)));
-                    file.write(",");
-
-                    file.write(Integer.toString(colConstraintByRow(row, gridSize)));
-                    file.write(",");
-
-                    file.write(Integer.toString(boxConstraintByRow(row, gridSize)));
-                    file.write("\n");
-                }
-                file.close();
-            } catch (Exception e) {
-                System.out.println("Failed to write");
-            }
         }
     }
 
