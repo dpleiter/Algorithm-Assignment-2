@@ -202,8 +202,12 @@ public class StdSudokuGrid extends SudokuGrid {
     }
 
     @Override
-    public void setCell(int row, int col, int value) {
-        grid[row][col] = value;
+    public void setCell(int row, int col, int digitNum) {
+        if (digitNum == -1) {
+            grid[row][col] = 0;
+        } else {
+            grid[row][col] = digits.get(digitNum);
+        }
     }
 
     @Override

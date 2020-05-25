@@ -17,8 +17,8 @@ public class BackTrackingSolver extends StdSudokuSolver {
 
     @Override
     public boolean solve(SudokuGrid grid) {
-        Iterator<Integer> digits = grid.getDigits().iterator();
-        int digit;
+        // Iterator<Integer> digits = grid.getDigits().iterator();
+        // int digit;
         int gridSize = grid.getSize();
 
         for (int i = 0; i < gridSize * gridSize; i++) {
@@ -26,8 +26,7 @@ public class BackTrackingSolver extends StdSudokuSolver {
             int col = i % gridSize;
 
             if (grid.getCellValue(row, col) == 0) {
-                while (digits.hasNext()) {
-                    digit = digits.next();
+                for (int digit = 0; digit < gridSize; digit++) {
                     grid.setCell(row, col, digit);
 
                     if (grid.validate()) {
@@ -39,7 +38,7 @@ public class BackTrackingSolver extends StdSudokuSolver {
                     }
                 }
 
-                grid.setCell(row, col, 0);
+                grid.setCell(row, col, -1);
                 return false;
             }
         }
