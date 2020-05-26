@@ -81,8 +81,6 @@ public class AlgorXSolver extends StdSudokuSolver {
         public boolean[] colInclusion;
         public int[] colSums;
 
-        public boolean[] rowInclusion;
-
         public int numRows;
         public int numCols;
 
@@ -91,8 +89,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             numCols = 4 * dimensions * dimensions;
 
             matrix = new boolean[numRows][numCols];
-
-            rowInclusion = new boolean[numRows];
 
             colInclusion = new boolean[numCols];
             colSums = new int[numCols];
@@ -103,8 +99,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             }
 
             for (int rowNum = 0; rowNum < numRows; rowNum++) {
-                rowInclusion[rowNum] = true;
-
                 // cell constraint
                 matrix[rowNum][cellConstraintByRow(rowNum, dimensions)] = true;
 
