@@ -36,12 +36,12 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         for (int mRow = 0; mRow < xMatrix.numRows; mRow++) {
-            if (xMatrix.rowInclusion[mRow] && xMatrix.matrix[mRow][minCol]) {
+            if (xMatrix.matrix[mRow][minCol]) {
                 int digit = mRow % grid.getSize();
                 int addInRowNum = Math.floorDiv(mRow, gridSize * gridSize);
                 int addInColNum = Math.floorDiv(mRow % (gridSize * gridSize), gridSize);
 
-                xMatrix.removeConstraintsByRow(mRow, grid.getSize());
+                xMatrix.removeConstraints(mRow, grid.getSize());
 
                 grid.setCell(addInRowNum, addInColNum, digit);
 
@@ -82,7 +82,6 @@ public class AlgorXSolver extends StdSudokuSolver {
         public int[] colSums;
 
         public boolean[] rowInclusion;
-        public int[] rowTracker; // To track columns responsible for removing a row
 
         public int numRows;
         public int numCols;
@@ -94,7 +93,6 @@ public class AlgorXSolver extends StdSudokuSolver {
             matrix = new boolean[numRows][numCols];
 
             rowInclusion = new boolean[numRows];
-            rowTracker = new int[numRows];
 
             colInclusion = new boolean[numCols];
             colSums = new int[numCols];
@@ -106,7 +104,6 @@ public class AlgorXSolver extends StdSudokuSolver {
 
             for (int rowNum = 0; rowNum < numRows; rowNum++) {
                 rowInclusion[rowNum] = true;
-                rowTracker[rowNum] = -1;
 
                 // cell constraint
                 matrix[rowNum][cellConstraintByRow(rowNum, dimensions)] = true;
@@ -128,14 +125,14 @@ public class AlgorXSolver extends StdSudokuSolver {
             for (int row = 0; row < gridSize; row++) {
                 for (int col = 0; col < gridSize; col++) {
                     if (grid.getCellValue(row, col) != 0) {
-                        removeConstraintsByRow(gridSize * gridSize * row + gridSize * col
+                        removeConstraints(gridSize * gridSize * row + gridSize * col
                                 + grid.getDigitPosition(grid.getCellValue(row, col)), gridSize);
                     }
                 }
             }
         }
 
-        public void removeConstraintsByRow(int rowNum, int gridSize) {
+        public void removeConstraints(int rowNum, int gridSize) {
             int cellCol = cellConstraintByRow(rowNum, gridSize);
             int rowCol = rowConstraintByRow(rowNum, gridSize);
             int colCol = colConstraintByRow(rowNum, gridSize);
@@ -147,30 +144,60 @@ public class AlgorXSolver extends StdSudokuSolver {
             colInclusion[boxCol] = false;
 
             for (int i = 0; i < numRows; i++) {
-                if (rowInclusion[i]) {
-                    if (matrix[i][cellCol] && rowTracker[i] == -1) {
-                        colSums[cellConstraintByRow(i, gridSize)]--;
-                        rowInclusion[i] = false;
-                        rowTracker[i] = cellCol;
-                    }
+                if (matrix[i][cellCol]) {
+                    int tempCol1 = rowConstraintByRow(i, gridSize);
+                    int tempCol2 = colConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
 
-                    if (matrix[i][rowCol] && rowTracker[i] == -1) {
-                        colSums[rowConstraintByRow(i, gridSize)]--;
-                        rowInclusion[i] = false;
-                        rowTracker[i] = rowCol;
-                    }
+                    colSums[tempCol1]--;
+                    colSums[tempCol2]--;
+                    colSums[tempCol3]--;
 
-                    if (matrix[i][colCol] && rowTracker[i] == -1) {
-                        colSums[colConstraintByRow(i, gridSize)]--;
-                        rowInclusion[i] = false;
-                        rowTracker[i] = colCol;
-                    }
+                    matrix[i][tempCol1] = false;
+                    matrix[i][tempCol2] = false;
+                    matrix[i][tempCol3] = false;
+                }
 
-                    if (matrix[i][boxCol] && rowTracker[i] == -1) {
-                        colSums[boxConstraintByRow(i, gridSize)]--;
-                        rowInclusion[i] = false;
-                        rowTracker[i] = boxCol;
-                    }
+                if (matrix[i][rowCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = colConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]--;
+                    colSums[tempCol2]--;
+                    colSums[tempCol3]--;
+
+                    matrix[i][tempCol1] = false;
+                    matrix[i][tempCol2] = false;
+                    matrix[i][tempCol3] = false;
+                }
+
+                if (matrix[i][colCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = rowConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]--;
+                    colSums[tempCol2]--;
+                    colSums[tempCol3]--;
+
+                    matrix[i][tempCol1] = false;
+                    matrix[i][tempCol2] = false;
+                    matrix[i][tempCol3] = false;
+                }
+
+                if (matrix[i][boxCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = rowConstraintByRow(i, gridSize);
+                    int tempCol3 = colConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]--;
+                    colSums[tempCol2]--;
+                    colSums[tempCol3]--;
+
+                    matrix[i][tempCol1] = false;
+                    matrix[i][tempCol2] = false;
+                    matrix[i][tempCol3] = false;
                 }
             }
         }
@@ -187,28 +214,60 @@ public class AlgorXSolver extends StdSudokuSolver {
             colInclusion[boxCol] = true;
 
             for (int i = 0; i < numRows; i++) {
-                if (matrix[i][cellCol] && rowTracker[i] == cellCol) {
-                    colSums[cellConstraintByRow(i, gridSize)]++;
-                    rowInclusion[i] = true;
-                    rowTracker[i] = -1;
+                if (matrix[i][cellCol]) {
+                    int tempCol1 = rowConstraintByRow(i, gridSize);
+                    int tempCol2 = colConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]++;
+                    colSums[tempCol2]++;
+                    colSums[tempCol3]++;
+
+                    matrix[i][tempCol1] = true;
+                    matrix[i][tempCol2] = true;
+                    matrix[i][tempCol3] = true;
                 }
 
-                if (matrix[i][rowCol] && rowTracker[i] == rowCol) {
-                    colSums[rowConstraintByRow(i, gridSize)]++;
-                    rowInclusion[i] = true;
-                    rowTracker[i] = -1;
+                if (matrix[i][rowCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = colConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]++;
+                    colSums[tempCol2]++;
+                    colSums[tempCol3]++;
+
+                    matrix[i][tempCol1] = true;
+                    matrix[i][tempCol2] = true;
+                    matrix[i][tempCol3] = true;
                 }
 
-                if (matrix[i][colCol] && rowTracker[i] == colCol) {
-                    colSums[colConstraintByRow(i, gridSize)]++;
-                    rowInclusion[i] = true;
-                    rowTracker[i] = -1;
+                if (matrix[i][colCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = rowConstraintByRow(i, gridSize);
+                    int tempCol3 = boxConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]++;
+                    colSums[tempCol2]++;
+                    colSums[tempCol3]++;
+
+                    matrix[i][tempCol1] = true;
+                    matrix[i][tempCol2] = true;
+                    matrix[i][tempCol3] = true;
                 }
 
-                if (matrix[i][boxCol] && rowTracker[i] == boxCol) {
-                    colSums[boxConstraintByRow(i, gridSize)]++;
-                    rowInclusion[i] = true;
-                    rowTracker[i] = -1;
+                if (matrix[i][boxCol]) {
+                    int tempCol1 = cellConstraintByRow(i, gridSize);
+                    int tempCol2 = rowConstraintByRow(i, gridSize);
+                    int tempCol3 = colConstraintByRow(i, gridSize);
+
+                    colSums[tempCol1]++;
+                    colSums[tempCol2]++;
+                    colSums[tempCol3]++;
+
+                    matrix[i][tempCol1] = true;
+                    matrix[i][tempCol2] = true;
+                    matrix[i][tempCol3] = true;
                 }
             }
         }
