@@ -10,22 +10,18 @@ import grid.SudokuGrid;
  * Dancing links solver for standard Sudoku.
  */
 public class DancingLinksSolver extends StdSudokuSolver {
-    matrixCol[] colHeaders;
-
-    public DancingLinksSolver() {
-
-    } // end of DancingLinksSolver()
+    private matrixCol[] colHeaders;
+    private int gridDimensions;
 
     @Override
     public boolean solve(SudokuGrid grid) {
+        gridDimensions = grid.getSize();
         initMatrix(grid);
 
         return performCalcs(grid);
     } // end of solve()
 
     private void initMatrix(SudokuGrid grid) {
-        int gridDimensions = grid.getSize();
-
         int matrixRows = gridDimensions * gridDimensions * gridDimensions;
         int matrixCols = 4 * gridDimensions * gridDimensions;
 
@@ -41,22 +37,15 @@ public class DancingLinksSolver extends StdSudokuSolver {
             Node colConstraint = new Constraint(row);
             Node boxConstraint = new Constraint(row);
 
-            cellConstraint.setLeft(boxConstraint);
             cellConstraint.setRight(rowConstraint);
-
-            rowConstraint.setLeft(cellConstraint);
             rowConstraint.setRight(colConstraint);
-
-            colConstraint.setLeft(rowConstraint);
             colConstraint.setRight(boxConstraint);
-
-            boxConstraint.setLeft(colConstraint);
             boxConstraint.setRight(cellConstraint);
 
-            int cellCol = cellConstraintByRow(row, gridDimensions);
-            int rowCol = rowConstraintByRow(row, gridDimensions);
-            int colCol = colConstraintByRow(row, gridDimensions);
-            int boxCol = boxConstraintByRow(row, gridDimensions);
+            int cellCol = cellConstraintByRow(row);
+            int rowCol = rowConstraintByRow(row);
+            int colCol = colConstraintByRow(row);
+            int boxCol = boxConstraintByRow(row);
 
             colHeaders[cellCol].addVertical(cellConstraint);
             colHeaders[rowCol].addVertical(rowConstraint);
@@ -70,7 +59,7 @@ public class DancingLinksSolver extends StdSudokuSolver {
                 if (grid.getCellValue(row, col) != 0) {
                     // Remove from matrix
                     removeConstraintsByRow(row * gridDimensions * gridDimensions + gridDimensions * col
-                            + grid.getDigitPosition(grid.getCellValue(row, col)), gridDimensions);
+                            + grid.getDigitPosition(grid.getCellValue(row, col)));
                 }
             }
         }
@@ -80,10 +69,12 @@ public class DancingLinksSolver extends StdSudokuSolver {
         matrixCol minCol = findMinCol();
 
         if (minCol == null) {
+            // All constraints have been satisfied
             return true;
         }
 
         if (minCol.getColSum() == 0) {
+            // Not possible to satisfy constraint
             return false;
         }
 
@@ -92,18 +83,18 @@ public class DancingLinksSolver extends StdSudokuSolver {
         while (activeConstraint instanceof Constraint) {
             Constraint constraint = (Constraint) activeConstraint;
 
-            int gridRow = constraint.getGridRow(grid.getSize());
-            int gridCol = constraint.getGridCol(grid.getSize());
-            int gridDigit = constraint.getGridDigit(grid.getSize());
+            int gridRow = constraint.getGridRow(gridDimensions);
+            int gridCol = constraint.getGridCol(gridDimensions);
+            int gridDigit = constraint.getGridDigit(gridDimensions);
 
             grid.setCell(gridRow, gridCol, gridDigit);
 
-            removeConstraintsByRow(constraint.getMatrixRow(), grid.getSize());
+            removeConstraintsByRow(constraint.getMatrixRow());
 
             if (performCalcs(grid)) {
                 return true;
             } else {
-                resetConstraintsByRow(constraint.getMatrixRow(), grid.getSize());
+                resetConstraintsByRow(constraint.getMatrixRow());
                 grid.setCell(gridRow, gridCol, -1);
             }
 
@@ -130,11 +121,11 @@ public class DancingLinksSolver extends StdSudokuSolver {
         return minCol;
     }
 
-    private void removeConstraintsByRow(int rowNum, int gridSize) {
-        matrixCol cellConstraint = colHeaders[cellConstraintByRow(rowNum, gridSize)];
-        matrixCol rowConstraint = colHeaders[rowConstraintByRow(rowNum, gridSize)];
-        matrixCol colConstraint = colHeaders[colConstraintByRow(rowNum, gridSize)];
-        matrixCol boxConstraint = colHeaders[boxConstraintByRow(rowNum, gridSize)];
+    private void removeConstraintsByRow(int rowNum) {
+        matrixCol cellConstraint = colHeaders[cellConstraintByRow(rowNum)];
+        matrixCol rowConstraint = colHeaders[rowConstraintByRow(rowNum)];
+        matrixCol colConstraint = colHeaders[colConstraintByRow(rowNum)];
+        matrixCol boxConstraint = colHeaders[boxConstraintByRow(rowNum)];
 
         cellConstraint.setStatus(false);
         rowConstraint.setStatus(false);
@@ -147,11 +138,11 @@ public class DancingLinksSolver extends StdSudokuSolver {
         removeConstraintsByCol(boxConstraint);
     }
 
-    private void resetConstraintsByRow(int rowNum, int gridSize) {
-        matrixCol cellConstraint = colHeaders[cellConstraintByRow(rowNum, gridSize)];
-        matrixCol rowConstraint = colHeaders[rowConstraintByRow(rowNum, gridSize)];
-        matrixCol colConstraint = colHeaders[colConstraintByRow(rowNum, gridSize)];
-        matrixCol boxConstraint = colHeaders[boxConstraintByRow(rowNum, gridSize)];
+    private void resetConstraintsByRow(int rowNum) {
+        matrixCol cellConstraint = colHeaders[cellConstraintByRow(rowNum)];
+        matrixCol rowConstraint = colHeaders[rowConstraintByRow(rowNum)];
+        matrixCol colConstraint = colHeaders[colConstraintByRow(rowNum)];
+        matrixCol boxConstraint = colHeaders[boxConstraintByRow(rowNum)];
 
         cellConstraint.setStatus(true);
         rowConstraint.setStatus(true);
@@ -189,7 +180,7 @@ public class DancingLinksSolver extends StdSudokuSolver {
             Node tempConstraint = activeConstraint.getRight();
 
             while (tempConstraint != activeConstraint) {
-                tempConstraint.reatachNode();
+                tempConstraint.reattachNode();
 
                 incrementColumnOfConstraint(tempConstraint);
 
@@ -220,40 +211,35 @@ public class DancingLinksSolver extends StdSudokuSolver {
         colHeader.incrementColSum();
     }
 
-    private int cellConstraintByRow(int rowNum, int dimensions) {
-        return Math.floorDiv(rowNum, dimensions);
+    private int cellConstraintByRow(int rowNum) {
+        return Math.floorDiv(rowNum, gridDimensions);
     }
 
-    private int rowConstraintByRow(int rowNum, int dimensions) {
-        return (dimensions * dimensions) + dimensions * Math.floorDiv(rowNum, dimensions * dimensions)
-                + rowNum % dimensions;
+    private int rowConstraintByRow(int rowNum) {
+        return (gridDimensions * gridDimensions)
+                + gridDimensions * Math.floorDiv(rowNum, gridDimensions * gridDimensions) + rowNum % gridDimensions;
     }
 
-    private int colConstraintByRow(int rowNum, int dimensions) {
-        return 2 * dimensions * dimensions + rowNum % (dimensions * dimensions);
+    private int colConstraintByRow(int rowNum) {
+        return 2 * gridDimensions * gridDimensions + rowNum % (gridDimensions * gridDimensions);
     }
 
-    private int boxConstraintByRow(int rowNum, int dimensions) {
-        double offset = Math.pow(dimensions, 1.5) * Math.floorDiv(rowNum, (int) Math.pow(dimensions, 2.5))
-                + dimensions * Math.floorDiv(rowNum % (dimensions * dimensions), (int) Math.pow(dimensions, 1.5))
-                + rowNum % dimensions;
+    private int boxConstraintByRow(int rowNum) {
+        double offset = Math.pow(gridDimensions, 1.5) * Math.floorDiv(rowNum, (int) Math.pow(gridDimensions, 2.5))
+                + gridDimensions
+                        * Math.floorDiv(rowNum % (gridDimensions * gridDimensions), (int) Math.pow(gridDimensions, 1.5))
+                + rowNum % gridDimensions;
 
-        return 3 * dimensions * dimensions + (int) offset;
+        return 3 * gridDimensions * gridDimensions + (int) offset;
     }
 
     private abstract class Node {
-        protected boolean isActive;
-
-        protected Node left;
         protected Node right;
 
         protected Node above;
         protected Node below;
 
         public Node() {
-            this.isActive = true;
-
-            this.left = this;
             this.right = this;
 
             this.above = this;
@@ -265,13 +251,9 @@ public class DancingLinksSolver extends StdSudokuSolver {
             this.below.setAbove(this.above);
         }
 
-        public void reatachNode() {
+        public void reattachNode() {
             this.above.setBelow(this);
             this.below.setAbove(this);
-        }
-
-        public boolean isActive() {
-            return this.isActive;
         }
 
         public Node getRight() {
@@ -284,14 +266,6 @@ public class DancingLinksSolver extends StdSudokuSolver {
 
         public Node getBelow() {
             return this.below;
-        }
-
-        public void setStatus(boolean newStatus) {
-            this.isActive = newStatus;
-        }
-
-        public void setLeft(Node node) {
-            this.left = node;
         }
 
         public void setRight(Node node) {
@@ -309,9 +283,11 @@ public class DancingLinksSolver extends StdSudokuSolver {
 
     private class matrixCol extends Node {
         private int colSum;
+        private boolean isActive;
 
         public matrixCol(int dimensions) {
             this.colSum = dimensions;
+            this.isActive = true;
         }
 
         public int getColSum() {
@@ -332,6 +308,14 @@ public class DancingLinksSolver extends StdSudokuSolver {
 
             this.below.setAbove(node);
             this.below = node;
+        }
+
+        public void setStatus(boolean newStatus) {
+            this.isActive = newStatus;
+        }
+
+        public boolean isActive() {
+            return this.isActive;
         }
     }
 
@@ -360,5 +344,4 @@ public class DancingLinksSolver extends StdSudokuSolver {
             return this.rowNum;
         }
     }
-
 } // end of class DancingLinksSolver
