@@ -181,7 +181,6 @@ public class StdSudokuGrid extends SudokuGrid {
         return true;
     }
 
-    @Override
     public int[][] getGrid() {
         return grid;
     }

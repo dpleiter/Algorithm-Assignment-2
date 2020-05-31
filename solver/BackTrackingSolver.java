@@ -5,14 +5,13 @@
 package solver;
 
 import grid.SudokuGrid;
-import java.util.*;
 
 /**
  * Backtracking solver for standard Sudoku.
  */
 public class BackTrackingSolver extends StdSudokuSolver {
     public BackTrackingSolver() {
-        // TODO: any initialisation you want to implement.
+
     } // end of BackTrackingSolver()
 
     @Override
