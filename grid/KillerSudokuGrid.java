@@ -68,9 +68,10 @@ public class KillerSudokuGrid extends SudokuGrid {
                 }
             }
 
-            // newCage.findCominations(digits, new ArrayList<Integer>(),
-            // Integer.parseInt(strSplit[0]), 0, 0);
-            // newCage.printCombinations();
+            System.out.println("Finding combinations for cage total of " + Integer.parseInt(strSplit[0]));
+            newCage.findDigits(digits, new ArrayList<Integer>(), 0, 0);
+            System.out.println("Finished");
+            newCage.printCombinations();
 
             inputLine = file.readLine();
         }
@@ -198,8 +199,6 @@ public class KillerSudokuGrid extends SudokuGrid {
             }
         }
 
-        System.out.println(cages.size());
-
         for (Cage cage : cages) {
             if (!cage.isComplete()) {
                 return false;
@@ -251,7 +250,8 @@ public class KillerSudokuGrid extends SudokuGrid {
     @SuppressWarnings("unused")
     private class Cage {
         private ArrayList<Cell> cells = new ArrayList<Cell>();
-        private ArrayList<Object[]> combinations = new ArrayList<Object[]>();
+        private HashSet<Integer> possibleDigits = new HashSet<Integer>();
+        private HashSet<Integer> digitsInCage = new HashSet<Integer>();
         private int targetValue;
 
         public Cage(int targetValue) {
@@ -262,31 +262,41 @@ public class KillerSudokuGrid extends SudokuGrid {
             cells.add(cell);
         }
 
-        public void findCominations(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int target, int startVal,
-                int startIndex) {
-            if (startVal == target) {
-                System.out.println("Found solution");
+        public void findDigits(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int sum, int startIndex) {
+            possibleDigits.clear();
 
-                combinations.add(partialSol.toArray());
+            findDigitsRecursive(digits, partialSol, sum, startIndex);
+        }
+
+        public void findDigitsRecursive(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int sum,
+                int startIndex) {
+            if (sum == this.targetValue && partialSol.size() == this.cells.size()) {
+                for (int i : partialSol) {
+                    possibleDigits.add(i);
+                }
             }
 
             for (int i = startIndex; i < digits.size(); i++) {
-                partialSol.add(digits.get(i));
+                int newDigit = digits.get(i);
 
-                findCominations(digits, partialSol, target, startVal + digits.get(i), startIndex + i + 1);
+                if (digitsInCage.contains(newDigit)) {
+                    continue;
+                }
+
+                partialSol.add(newDigit);
+
+                findDigitsRecursive(digits, partialSol, sum + digits.get(i), i + 1);
 
                 partialSol.remove(partialSol.size() - 1);
             }
         }
 
         public void printCombinations() {
-            for (int i = 0; i < combinations.size(); i++) {
-                Object[] temp = combinations.get(i);
-                for (int j = 0; j < temp.length - 1; j++) {
-                    System.out.print(temp[j] + " + ");
-                }
-                System.out.println(temp[temp.length - 1] + "\n");
+            System.out.println("Cage sum = " + this.targetValue);
+            for (int digit : possibleDigits) {
+                System.out.print(digit + " ");
             }
+            System.out.println();
         }
 
         public boolean isValid() {
@@ -299,7 +309,6 @@ public class KillerSudokuGrid extends SudokuGrid {
                 }
 
                 if (digits.contains(cell.getValue())) {
-                    System.out.println(cell.getValue());
                     return false;
                 } else {
                     digits.add(cell.getValue());
@@ -335,6 +344,10 @@ public class KillerSudokuGrid extends SudokuGrid {
 
             return true;
         }
+
+        public HashSet<Integer> getDigitsInCage() {
+            return this.digitsInCage;
+        }
     }
 
     @SuppressWarnings("unused")
@@ -347,6 +360,12 @@ public class KillerSudokuGrid extends SudokuGrid {
         }
 
         public void setValue(int newVal) {
+            if (newVal == 0) {
+                this.cage.getDigitsInCage().remove(this.value);
+            } else {
+                this.cage.getDigitsInCage().add(newVal);
+            }
+
             this.value = newVal;
         }
 
