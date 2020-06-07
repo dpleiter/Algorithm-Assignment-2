@@ -5,12 +5,15 @@
 package solver;
 
 import grid.SudokuGrid;
+import grid.KillerSudokuGrid;
+import java.util.*;
 
 /**
  * Backtracking solver for Killer Sudoku.
  */
 public class KillerBackTrackingSolver extends KillerSudokuSolver {
-    // TODO: Add attributes as needed.
+    private int gridDimensions;
+    KillerSudokuGrid grid;
 
     public KillerBackTrackingSolver() {
         // TODO: any initialisation you want to implement.
@@ -18,17 +21,24 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
     @Override
     public boolean solve(SudokuGrid grid) {
-        int gridSize = grid.getSize();
+        this.grid = (KillerSudokuGrid) grid;
+        gridDimensions = grid.getSize();
 
-        for (int i = 0; i < gridSize * gridSize; i++) {
-            int row = i / gridSize;
-            int col = i % gridSize;
+        for (int i = 0; i < gridDimensions * gridDimensions; i++) {
+            int row = i / gridDimensions;
+            int col = i % gridDimensions;
 
             if (grid.getCellValue(row, col) == 0) {
-                for (int digit = 0; digit < gridSize; digit++) {
-                    grid.setCell(row, col, digit);
+                for (int digitPosition = 0; digitPosition < gridDimensions; digitPosition++) {
+                    // Need to first check if digit is already in cage, as this throws up unique
+                    // issues
+                    if (this.grid.getCage(row, col).checkDuplicates(this.grid.getDigits().get(digitPosition))) {
+                        continue;
+                    }
 
-                    if (grid.validate()) {
+                    grid.setCell(row, col, digitPosition);
+
+                    if (checkInsertion(row, col)) {
                         if (grid.checkComplete()) {
                             return true;
                         } else if (solve(grid)) {
@@ -44,5 +54,72 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
         return false;
     } // end of solve()
+
+    private boolean checkInsertion(int rowNum, int colNum) {
+        int boxSize = (int) Math.sqrt(gridDimensions);
+        int cellValue;
+
+        HashSet<Integer> checker = new HashSet<Integer>();
+
+        // Check rows
+        for (int col = 0; col < gridDimensions; col++) {
+            cellValue = grid.getCellValue(rowNum, col);
+
+            if (cellValue == 0)
+                continue;
+
+            if (!checker.contains(cellValue)) {
+                checker.add(cellValue);
+            } else {
+                return false;
+            }
+        }
+
+        checker.clear();
+
+        // Check columns
+        for (int row = 0; row < gridDimensions; row++) {
+            cellValue = grid.getCellValue(row, colNum);
+
+            if (cellValue == 0)
+                continue;
+
+            if (!checker.contains(cellValue)) {
+                checker.add(cellValue);
+            } else {
+                return false;
+            }
+        }
+
+        checker.clear();
+
+        // Check boxes
+        int boxStartRow = boxSize * Math.floorDiv(rowNum, boxSize);
+        int boxStartCol = boxSize * Math.floorDiv(colNum, boxSize);
+
+        for (int c = 0; c < boxSize; c++) {
+            for (int d = 0; d < boxSize; d++) {
+                cellValue = grid.getCellValue(boxStartRow + c, boxStartCol + d);
+
+                if (cellValue == 0)
+                    continue;
+
+                if (!checker.contains(cellValue)) {
+                    checker.add(cellValue);
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        checker.clear();
+
+        // Check cages
+        if (!grid.getCage(rowNum, colNum).isValid()) {
+            return false;
+        }
+
+        return true;
+    }
 
 } // end of class KillerBackTrackingSolver()

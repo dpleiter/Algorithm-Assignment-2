@@ -306,9 +306,20 @@ public class KillerSudokuGrid extends SudokuGrid {
             this.currentValue += value;
         }
 
+        public boolean checkDuplicates(int digit) {
+            return this.digitsInCage.contains(digit);
+        }
+
         public boolean isValid() {
-            int sum = 0;
             HashSet<Integer> digits = new HashSet<Integer>();
+
+            // System.out.println(" Digits in cage = " + digitsInCage.size() + ", cells in
+            // cage = " + cells.size());
+
+            if (this.currentValue > this.targetValue
+                    || (digitsInCage.size() == cells.size() && this.currentValue != this.targetValue)) {
+                return false;
+            }
 
             for (Cell cell : cells) {
                 if (cell.getValue() == 0) {
@@ -319,12 +330,6 @@ public class KillerSudokuGrid extends SudokuGrid {
                     return false;
                 } else {
                     digits.add(cell.getValue());
-                }
-
-                sum += cell.getValue();
-
-                if (sum > this.targetValue) {
-                    return false;
                 }
             }
 
@@ -380,14 +385,16 @@ public class KillerSudokuGrid extends SudokuGrid {
         }
 
         public void setValue(int newVal) {
-            if (newVal == 0) {
+            if (this.value != 0) {
                 this.cage.getDigitsInCage().remove(this.value);
-                this.cage.increaseSum(-1 * this.value);
-            } else {
-                this.cage.getDigitsInCage().add(newVal);
-                this.cage.increaseSum(newVal);
             }
 
+            if (newVal != 0) {
+                this.cage.getDigitsInCage().add(newVal);
+            }
+
+            // System.out.println("Increase cage total by " + (newVal - this.value));
+            this.cage.increaseSum(newVal - this.value);
             this.value = newVal;
         }
 
