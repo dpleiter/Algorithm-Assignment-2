@@ -58,7 +58,7 @@ public class KillerSudokuGrid extends SudokuGrid {
                 int col = Integer.parseInt(coords[1]);
 
                 if (grid[row][col] == null) {
-                    Cell newCell = new Cell(newCage);
+                    Cell newCell = new Cell(row, col, newCage);
 
                     newCage.addCell(newCell);
                     grid[row][col] = newCell;
@@ -68,10 +68,7 @@ public class KillerSudokuGrid extends SudokuGrid {
                 }
             }
 
-            System.out.println("Finding combinations for cage total of " + Integer.parseInt(strSplit[0]));
-            newCage.findDigits(digits, new ArrayList<Integer>(), 0, 0);
-            System.out.println("Finished");
-            newCage.printCombinations();
+            newCage.findCombinations(digits);
 
             inputLine = file.readLine();
         }
@@ -247,11 +244,23 @@ public class KillerSudokuGrid extends SudokuGrid {
         return -1;
     }
 
-    @SuppressWarnings("unused")
-    private class Cage {
+    public ArrayList<Cage> getCages() {
+        return this.cages;
+    }
+
+    public Cell getCell(int row, int col) {
+        return this.grid[row][col];
+    }
+
+    public Cage getCage(int row, int col) {
+        return this.grid[row][col].getCage();
+    }
+
+    public class Cage {
         private ArrayList<Cell> cells = new ArrayList<Cell>();
         private HashSet<Integer> possibleDigits = new HashSet<Integer>();
         private HashSet<Integer> digitsInCage = new HashSet<Integer>();
+        private int currentValue;
         private int targetValue;
 
         public Cage(int targetValue) {
@@ -262,41 +271,39 @@ public class KillerSudokuGrid extends SudokuGrid {
             cells.add(cell);
         }
 
-        public void findDigits(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int sum, int startIndex) {
+        public void findCombinations(ArrayList<Integer> digits) {
             possibleDigits.clear();
 
-            findDigitsRecursive(digits, partialSol, sum, startIndex);
+            findCombinationsRecursive(digits, new ArrayList<Integer>(), currentValue, 0);
         }
 
-        public void findDigitsRecursive(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int sum,
+        public void findCombinationsRecursive(ArrayList<Integer> digits, ArrayList<Integer> partialSol, int sum,
                 int startIndex) {
-            if (sum == this.targetValue && partialSol.size() == this.cells.size()) {
+            if (sum == this.targetValue && partialSol.size() == (this.cells.size() - digitsInCage.size())) {
                 for (int i : partialSol) {
                     possibleDigits.add(i);
                 }
             }
 
-            for (int i = startIndex; i < digits.size(); i++) {
-                int newDigit = digits.get(i);
+            if (!(sum >= targetValue)) {
+                for (int i = startIndex; i < digits.size(); i++) {
+                    int newDigit = digits.get(i);
 
-                if (digitsInCage.contains(newDigit)) {
-                    continue;
+                    if (digitsInCage.contains(newDigit)) {
+                        continue;
+                    }
+
+                    partialSol.add(newDigit);
+
+                    findCombinationsRecursive(digits, partialSol, sum + digits.get(i), i + 1);
+
+                    partialSol.remove(partialSol.size() - 1);
                 }
-
-                partialSol.add(newDigit);
-
-                findDigitsRecursive(digits, partialSol, sum + digits.get(i), i + 1);
-
-                partialSol.remove(partialSol.size() - 1);
             }
         }
 
-        public void printCombinations() {
-            System.out.println("Cage sum = " + this.targetValue);
-            for (int digit : possibleDigits) {
-                System.out.print(digit + " ");
-            }
-            System.out.println();
+        public void increaseSum(int value) {
+            this.currentValue += value;
         }
 
         public boolean isValid() {
@@ -348,29 +355,56 @@ public class KillerSudokuGrid extends SudokuGrid {
         public HashSet<Integer> getDigitsInCage() {
             return this.digitsInCage;
         }
+
+        public HashSet<Integer> getPossibleDigits() {
+            return this.possibleDigits;
+        }
+
+        public ArrayList<Cell> getCells() {
+            return this.cells;
+        }
     }
 
-    @SuppressWarnings("unused")
-    private class Cell {
+    public class Cell {
         private Cage cage;
         private int value;
 
-        public Cell(Cage cage) {
+        private int gridRow;
+        private int gridCol;
+
+        public Cell(int row, int col, Cage cage) {
+            this.gridRow = row;
+            this.gridCol = col;
+
             this.cage = cage;
         }
 
         public void setValue(int newVal) {
             if (newVal == 0) {
                 this.cage.getDigitsInCage().remove(this.value);
+                this.cage.increaseSum(-1 * this.value);
             } else {
                 this.cage.getDigitsInCage().add(newVal);
+                this.cage.increaseSum(newVal);
             }
 
             this.value = newVal;
         }
 
+        public int getRow() {
+            return this.gridRow;
+        }
+
+        public int getCol() {
+            return this.gridCol;
+        }
+
         public int getValue() {
             return this.value;
+        }
+
+        public Cage getCage() {
+            return this.cage;
         }
     }
 
