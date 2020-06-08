@@ -37,15 +37,31 @@ public class KillerSudokuGrid extends SudokuGrid {
         grid = new Cell[gridDimensions][gridDimensions];
 
         inputLine = file.readLine();
+        String[] digitStrings = inputLine.split(" ");
 
-        for (String digit : inputLine.split(" ")) {
+        if (digitStrings.length != gridDimensions) {
+            file.close();
+            throw new IOException("Number of digits must equal grid dimensions");
+        }
+
+        for (String digit : digitStrings) {
+            int newDigit = Integer.parseInt(digit);
+
+            if (digits.contains(newDigit)) {
+                file.close();
+                throw new IOException("Duplicate digits detected");
+            }
+
             digits.add(Integer.parseInt(digit));
         }
 
-        inputLine = file.readLine();
+        int numCages = Integer.parseInt(file.readLine());
+
+        int cageCounter = 0;
         inputLine = file.readLine();
 
         while (inputLine != null) {
+            cageCounter++;
             String[] strSplit = inputLine.split(" ");
 
             Cage newCage = new Cage(Integer.parseInt(strSplit[0]));
@@ -54,8 +70,18 @@ public class KillerSudokuGrid extends SudokuGrid {
             for (int i = 1; i < strSplit.length; i++) {
                 String[] coords = strSplit[i].split(",");
 
+                if (coords.length != 2) {
+                    file.close();
+                    throw new IOException("Cell coordinates must have 2 integers");
+                }
+
                 int row = Integer.parseInt(coords[0]);
                 int col = Integer.parseInt(coords[1]);
+
+                if (row < 0 || col < 0 || row >= gridDimensions || col >= gridDimensions) {
+                    file.close();
+                    throw new IOException("Cell coordinate outside bounds of grid");
+                }
 
                 if (grid[row][col] == null) {
                     Cell newCell = new Cell(row, col, newCage);
@@ -63,8 +89,8 @@ public class KillerSudokuGrid extends SudokuGrid {
                     newCage.addCell(newCell);
                     grid[row][col] = newCell;
                 } else {
-                    // throw new Exception();
-                    System.out.println("EXCEPTION SHOULD BE THROWN HERE");
+                    file.close();
+                    throw new IOException("Duplicate cells in input. (" + row + ", " + col + ")");
                 }
             }
 
@@ -74,6 +100,14 @@ public class KillerSudokuGrid extends SudokuGrid {
         }
 
         file.close();
+
+        if (cageCounter != numCages) {
+            throw new IOException("Check number of expected cages");
+        }
+
+        if (!validate()) {
+            throw new IOException("Error in grid validation. Check all cells have been accounted for.");
+        }
     } // end of initBoard()
 
     @Override
@@ -121,6 +155,10 @@ public class KillerSudokuGrid extends SudokuGrid {
         // Check rows
         for (int row = 0; row < gridDimensions; row++) {
             for (int col = 0; col < gridDimensions; col++) {
+                if (grid[row][col] == null) {
+                    return false;
+                }
+
                 cellValue = grid[row][col].getValue();
 
                 if (cellValue == 0)
@@ -313,9 +351,6 @@ public class KillerSudokuGrid extends SudokuGrid {
         public boolean isValid() {
             HashSet<Integer> digits = new HashSet<Integer>();
 
-            // System.out.println(" Digits in cage = " + digitsInCage.size() + ", cells in
-            // cage = " + cells.size());
-
             if (this.currentValue > this.targetValue
                     || (digitsInCage.size() == cells.size() && this.currentValue != this.targetValue)) {
                 return false;
@@ -393,7 +428,6 @@ public class KillerSudokuGrid extends SudokuGrid {
                 this.cage.getDigitsInCage().add(newVal);
             }
 
-            // System.out.println("Increase cage total by " + (newVal - this.value));
             this.cage.increaseSum(newVal - this.value);
             this.value = newVal;
         }
@@ -414,5 +448,4 @@ public class KillerSudokuGrid extends SudokuGrid {
             return this.cage;
         }
     }
-
 } // end of class KillerSudokuGrid
