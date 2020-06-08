@@ -1,5 +1,6 @@
 /*
  * @author Jeffrey Chan & Minyi Li, RMIT 2020
+ * Implemented by Dylan Pleiter (s3252987)
  */
 
 package solver;
@@ -16,13 +17,11 @@ public class BackTrackingSolver extends StdSudokuSolver {
     private int gridDimensions;
 
     public BackTrackingSolver() {
-
+        // No constructor needed
     } // end of BackTrackingSolver()
 
     @Override
     public boolean solve(SudokuGrid grid) {
-        // Iterator<Integer> digits = grid.getDigits().iterator();
-        // int digit;
         this.grid = (StdSudokuGrid) grid;
 
         gridDimensions = this.grid.getSize();

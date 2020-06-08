@@ -126,8 +126,6 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
             } else {
                 grid.setCell(gridRow, gridCol, -1);
                 resetConstraintsByRow(constraintRow.getMatrixRowNum());
-
-                // this will actually reset constraints
                 updateRowsByCage(this.grid.getCage(gridRow, gridCol));
             }
 

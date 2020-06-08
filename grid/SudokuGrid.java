@@ -58,8 +58,6 @@ public abstract class SudokuGrid {
 
     public abstract boolean checkComplete();
 
-    // public abstract int[][] getGrid();
-
     public abstract ArrayList<Integer> getDigits();
 
     public abstract int getSize();
