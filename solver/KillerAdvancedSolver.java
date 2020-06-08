@@ -1,5 +1,6 @@
 /*
  * @author Jeffrey Chan & Minyi Li, RMIT 2020
+ * Implemented by Dylan Pleiter (s3252987)
  */
 
 package solver;
@@ -7,9 +8,6 @@ package solver;
 import grid.KillerSudokuGrid;
 import grid.SudokuGrid;
 
-/**
- * Your advanced solver for Killer Sudoku.
- */
 public class KillerAdvancedSolver extends KillerSudokuSolver {
     private MatrixCol[] colHeaders;
     private MatrixRow[] rowHeaders;
@@ -18,7 +16,7 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
     private int gridDimensions;
 
     public KillerAdvancedSolver() {
-
+        // No constructor needed
     } // end of KillerAdvancedSolver()
 
     @Override
@@ -117,11 +115,11 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
 
             grid.setCell(gridRow, gridCol, gridDigit);
 
-            // Now do the same for other constraints
+            // Remove rows based on cell, row, column, and box constraints
             removeConstraintsByRow(constraintRow.getMatrixRowNum());
 
             // Determine new digits that can occupy cage and update matrix accordingly
-            deleteRowsByCage(this.grid.getCage(gridRow, gridCol));
+            updateRowsByCage(this.grid.getCage(gridRow, gridCol));
 
             if (performCalcs()) {
                 return true;
@@ -130,7 +128,7 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
                 resetConstraintsByRow(constraintRow.getMatrixRowNum());
 
                 // this will actually reset constraints
-                deleteRowsByCage(this.grid.getCage(gridRow, gridCol));
+                updateRowsByCage(this.grid.getCage(gridRow, gridCol));
             }
 
             if (activeConstraint.getBelow() instanceof Constraint) {
@@ -160,7 +158,8 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
         return minCol;
     }
 
-    private void deleteRowsByCage(KillerSudokuGrid.Cage cage) {
+    private void updateRowsByCage(KillerSudokuGrid.Cage cage) {
+        // This function performs both detaching and reattaching operations
         cage.findCombinations(grid.getDigits());
 
         for (int digit : grid.getDigits()) {
@@ -186,6 +185,7 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
                     }
 
                     if (!xRow.isCageLocked() && !cage.getPossibleDigits().contains(digit)) {
+                        // need to remove nodes in this row
                         xRow.setCageLock(true);
 
                         for (int i = 0; i < 4; i++) {
