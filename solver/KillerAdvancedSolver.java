@@ -68,6 +68,7 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
             colHeaders[boxCol].addVertical(boxConstraint);
         }
 
+        // Remove rows that for digits that can't occupy cells in particular cages
         for (KillerSudokuGrid.Cage cage : grid.getCages()) {
             for (int digit : grid.getDigits()) {
                 if (!cage.getPossibleDigits().contains(digit)) {
@@ -94,6 +95,7 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
     }
 
     private boolean performCalcs() {
+        // Recursive part of the algorithm
         MatrixCol minCol = findMinCol();
 
         if (minCol == null) {
@@ -115,18 +117,20 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
 
             grid.setCell(gridRow, gridCol, gridDigit);
 
-            // Determine new digits that can occupy cage and update matrix accordingly
-            deleteRowsByCage(this.grid.getCage(gridRow, gridCol), constraintRow.getMatrixRowNum());
-
             // Now do the same for other constraints
             removeConstraintsByRow(constraintRow.getMatrixRowNum());
+
+            // Determine new digits that can occupy cage and update matrix accordingly
+            deleteRowsByCage(this.grid.getCage(gridRow, gridCol));
 
             if (performCalcs()) {
                 return true;
             } else {
                 grid.setCell(gridRow, gridCol, -1);
                 resetConstraintsByRow(constraintRow.getMatrixRowNum());
-                deleteRowsByCage(this.grid.getCage(gridRow, gridCol), constraintRow.getMatrixRowNum());
+
+                // this will actually reset constraints
+                deleteRowsByCage(this.grid.getCage(gridRow, gridCol));
             }
 
             if (activeConstraint.getBelow() instanceof Constraint) {
@@ -156,19 +160,14 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
         return minCol;
     }
 
-    private void deleteRowsByCage(KillerSudokuGrid.Cage cage, int forbiddenRow) {
+    private void deleteRowsByCage(KillerSudokuGrid.Cage cage) {
         cage.findCombinations(grid.getDigits());
 
         for (int digit : grid.getDigits()) {
-            // if (!cage.getPossibleDigits().contains(digit)) {
             // remove row
             for (KillerSudokuGrid.Cell cell : cage.getCells()) {
                 int xRowNum = cell.getRow() * gridDimensions * gridDimensions + cell.getCol() * gridDimensions
                         + grid.getDigitPosition(digit);
-
-                if (xRowNum == forbiddenRow) {
-                    continue;
-                }
 
                 MatrixRow xRow = rowHeaders[xRowNum];
 
@@ -197,7 +196,6 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
                     }
                 }
             }
-            // }
         }
     }
 
@@ -433,16 +431,12 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
             this.above.setBelow(this.below);
             this.below.setAbove(this.above);
 
-            // super.setStatus(false);
-
             this.colHeader.decrementSum();
         }
 
         public void reattachNode() {
             this.above.setBelow(this);
             this.below.setAbove(this);
-
-            // super.setStatus(true);
 
             this.colHeader.incrementSum();
         }
