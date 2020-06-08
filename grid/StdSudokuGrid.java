@@ -15,7 +15,6 @@ import java.util.*;
  * your implementation).
  */
 public class StdSudokuGrid extends SudokuGrid {
-    // TODO: Add your own attributes
     public int[][] grid;
     private ArrayList<Integer> digits = new ArrayList<Integer>();
     private int gridDimensions;
@@ -28,12 +27,8 @@ public class StdSudokuGrid extends SudokuGrid {
 
     @Override
     public void initGrid(String filename) throws FileNotFoundException, IOException {
-        // TODO: Throw exceptions when neccesary
         BufferedReader file = new BufferedReader(new FileReader(filename));
         String inputLine;
-        String[] cellDetail = new String[2];
-        String[] cellCoords;
-        String cellValue;
 
         // dimesnion of grid
         inputLine = file.readLine();
@@ -41,30 +36,62 @@ public class StdSudokuGrid extends SudokuGrid {
 
         grid = new int[gridDimensions][gridDimensions];
 
+        // Unique digits
         inputLine = file.readLine();
 
-        for (String digit : inputLine.split(" ")) {
-            digits.add(Integer.parseInt(digit));
+        String[] digitStrings = inputLine.split(" ");
+
+        if (digitStrings.length != gridDimensions) {
+            file.close();
+            throw new IOException("Number of digits must equal grid dimensions");
         }
 
+        for (String digit : digitStrings) {
+            int newDigit = Integer.parseInt(digit);
+
+            if (digits.contains(newDigit)) {
+                file.close();
+                throw new IOException("Duplicate digits detected");
+            }
+
+            digits.add(newDigit);
+        }
+
+        // Begin reading cell information
         inputLine = file.readLine();
 
         while (inputLine != null) {
-            cellDetail = inputLine.split(" ");
+            String[] cellDetail = inputLine.split("[, ]");
 
-            cellCoords = cellDetail[0].split(",");
-            cellValue = cellDetail[1];
+            if (cellDetail.length != 3) {
+                file.close();
+                throw new IOException("Error reading cell data. Make sure lines have 3 arguments only");
+            }
 
-            grid[Integer.parseInt(cellCoords[0])][Integer.parseInt(cellCoords[1])] = Integer.parseInt(cellValue);
+            int gridRow = Integer.parseInt(cellDetail[0]);
+            int gridCol = Integer.parseInt(cellDetail[1]);
+            int cellValue = Integer.parseInt(cellDetail[2]);
+
+            if (gridRow >= gridDimensions || gridCol >= gridDimensions) {
+                file.close();
+                throw new IOException("Make sure grid cells are within bounds");
+            }
+
+            if (!digits.contains(cellValue)) {
+                file.close();
+                throw new IOException("Cell value does not exist in defined digits");
+            }
+
+            grid[gridRow][gridCol] = cellValue;
 
             inputLine = file.readLine();
         }
 
         file.close();
 
-        // digitArray = digits.toArray();
-
-        validate();
+        if (!validate()) {
+            throw new IOException("Invalid starting grid");
+        }
     } // end of initBoard()
 
     @Override
