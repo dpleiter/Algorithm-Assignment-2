@@ -96,8 +96,6 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
     private boolean performCalcs() {
         MatrixCol minCol = findMinCol();
 
-        // System.out.println("Min col sum = " + minCol.getColSum());
-
         if (minCol == null) {
             return true;
         }
@@ -295,9 +293,12 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
     }
 
     private int boxConstraintByRow(int rowNum) {
-        double offset = Math.pow(gridDimensions, 1.5) * Math.floorDiv(rowNum, (int) Math.pow(gridDimensions, 2.5))
-                + gridDimensions
-                        * Math.floorDiv(rowNum % (gridDimensions * gridDimensions), (int) Math.pow(gridDimensions, 1.5))
+        final double EPS = 0.5; // to account for division errors with double
+
+        double offset = Math.pow(gridDimensions, 1.5)
+                * Math.floor(((double) rowNum + EPS) / Math.pow(gridDimensions, 2.5))
+                + gridDimensions * Math.floor(
+                        (double) (rowNum % (gridDimensions * gridDimensions) + EPS) / Math.pow(gridDimensions, 1.5))
                 + rowNum % gridDimensions;
 
         return 3 * gridDimensions * gridDimensions + (int) offset;

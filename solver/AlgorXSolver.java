@@ -37,13 +37,13 @@ public class AlgorXSolver extends StdSudokuSolver {
 
         for (int mRow = 0; mRow < xMatrix.numRows; mRow++) {
             if (xMatrix.matrix[mRow][minCol]) {
-                int digit = mRow % grid.getSize();
+                int digitPosition = mRow % grid.getSize();
                 int addInRowNum = Math.floorDiv(mRow, gridSize * gridSize);
                 int addInColNum = Math.floorDiv(mRow % (gridSize * gridSize), gridSize);
 
-                xMatrix.removeConstraints(mRow, grid.getSize());
+                grid.setCell(addInRowNum, addInColNum, digitPosition);
 
-                grid.setCell(addInRowNum, addInColNum, digit);
+                xMatrix.removeConstraints(mRow, grid.getSize());
 
                 if (performCalcs(grid)) {
                     return true;
@@ -58,6 +58,9 @@ public class AlgorXSolver extends StdSudokuSolver {
     }
 
     private int findMinCol() {
+        /*
+         * Return index of the column with the lowest sum that is also active
+         */
         int minCol = -1;
 
         for (int i = 0; i < xMatrix.numCols; i++) {
@@ -85,6 +88,9 @@ public class AlgorXSolver extends StdSudokuSolver {
         public int numCols;
 
         public algXMatrix(int dimensions) {
+            /*
+             * Initialise Matrix assuming empty grid (to be initialised later)
+             */
             numRows = dimensions * dimensions * dimensions;
             numCols = 4 * dimensions * dimensions;
 
@@ -114,6 +120,9 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         public void init(SudokuGrid grid) {
+            /*
+             * Feed in initial grid to Matrix before beginning algorithm
+             */
             int gridSize = grid.getSize();
 
             for (int row = 0; row < gridSize; row++) {
@@ -127,6 +136,12 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         public void removeConstraints(int rowNum, int gridSize) {
+            /*
+             * Set column statuses to false. Then scan each row in Matrix and set any cells
+             * in rows with at least one intersecting column with these 4 to false. Leave
+             * cells in these 4 columns alone to help with resetting on backtracking (hence
+             * 4 blocks of if statements)
+             */
             int cellCol = cellConstraintByRow(rowNum, gridSize);
             int rowCol = rowConstraintByRow(rowNum, gridSize);
             int colCol = colConstraintByRow(rowNum, gridSize);
@@ -197,6 +212,9 @@ public class AlgorXSolver extends StdSudokuSolver {
         }
 
         public void resetConstraintsByRow(int rowNum, int gridSize) {
+            /*
+             * Reset all constraints in rows where a true is detected in the removed columns
+             */
             int cellCol = cellConstraintByRow(rowNum, gridSize);
             int rowCol = rowConstraintByRow(rowNum, gridSize);
             int colCol = colConstraintByRow(rowNum, gridSize);
@@ -266,6 +284,7 @@ public class AlgorXSolver extends StdSudokuSolver {
             }
         }
 
+        // Helper methods that return column of constraints for a given row
         private int cellConstraintByRow(int rowNum, int dimensions) {
             return Math.floorDiv(rowNum, dimensions);
         }

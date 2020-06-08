@@ -16,7 +16,7 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
     KillerSudokuGrid grid;
 
     public KillerBackTrackingSolver() {
-        // TODO: any initialisation you want to implement.
+        // No constructor required
     } // end of KillerBackTrackingSolver()
 
     @Override
@@ -30,8 +30,8 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
             if (grid.getCellValue(row, col) == 0) {
                 for (int digitPosition = 0; digitPosition < gridDimensions; digitPosition++) {
-                    // Need to first check if digit is already in cage, as this throws up unique
-                    // issues
+                    // Need to first check if digit is already in cage, as duplicate digits within
+                    // cages throw up unique issues
                     if (this.grid.getCage(row, col).checkDuplicates(this.grid.getDigits().get(digitPosition))) {
                         continue;
                     }
@@ -56,17 +56,23 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
     } // end of solve()
 
     private boolean checkInsertion(int rowNum, int colNum) {
+        /*
+         * Check whether the latest insertion introduced a duplicate in row, column, or
+         * box. Finally, check whether the insertion puts the cage for the given cell
+         * into an invalid state
+         */
         int boxSize = (int) Math.sqrt(gridDimensions);
-        int cellValue;
 
+        // To check for duplicates
         HashSet<Integer> checker = new HashSet<Integer>();
 
         // Check rows
         for (int col = 0; col < gridDimensions; col++) {
-            cellValue = grid.getCellValue(rowNum, col);
+            int cellValue = grid.getCellValue(rowNum, col);
 
-            if (cellValue == 0)
+            if (cellValue == 0) {
                 continue;
+            }
 
             if (!checker.contains(cellValue)) {
                 checker.add(cellValue);
@@ -79,7 +85,7 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
         // Check columns
         for (int row = 0; row < gridDimensions; row++) {
-            cellValue = grid.getCellValue(row, colNum);
+            int cellValue = grid.getCellValue(row, colNum);
 
             if (cellValue == 0)
                 continue;
@@ -99,7 +105,7 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
         for (int c = 0; c < boxSize; c++) {
             for (int d = 0; d < boxSize; d++) {
-                cellValue = grid.getCellValue(boxStartRow + c, boxStartCol + d);
+                int cellValue = grid.getCellValue(boxStartRow + c, boxStartCol + d);
 
                 if (cellValue == 0)
                     continue;
@@ -121,5 +127,4 @@ public class KillerBackTrackingSolver extends KillerSudokuSolver {
 
         return true;
     }
-
 } // end of class KillerBackTrackingSolver()
