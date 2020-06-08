@@ -306,23 +306,13 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
 
     // PRIVATE CLASSES
     private abstract class Node {
-        private boolean isActive;
-
         protected Node right;
         protected Node above;
         protected Node below;
 
         public Node() {
-            this.isActive = true;
-
-            this.right = this;
-
             this.above = this;
             this.below = this;
-        }
-
-        public boolean isActive() {
-            return this.isActive;
         }
 
         public Node getRight() {
@@ -331,10 +321,6 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
 
         public Node getBelow() {
             return this.below;
-        }
-
-        public void setStatus(boolean newStatus) {
-            this.isActive = newStatus;
         }
 
         public void setRight(Node newNode) {
@@ -351,10 +337,13 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
     }
 
     private class MatrixCol extends Node {
+        private boolean isActive;
         private int colSum;
 
         public MatrixCol(int dimensions) {
             super();
+
+            this.isActive = true;
 
             this.colSum = dimensions;
         }
@@ -369,6 +358,14 @@ public class KillerAdvancedSolver extends KillerSudokuSolver {
 
         public int getColSum() {
             return this.colSum;
+        }
+
+        public boolean isActive() {
+            return this.isActive;
+        }
+
+        public void setStatus(boolean newStatus) {
+            this.isActive = newStatus;
         }
 
         public void decrementSum() {
